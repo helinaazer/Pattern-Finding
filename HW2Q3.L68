@@ -1,0 +1,138 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 4/23/2021 9:54:58 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      : HW2Q3
+00000000                             3  * Written by : Helina Azer
+00000000                             4  * Date       : 4/20/2021
+00000000                             5  * Description: Input a OneByte value and get the address, sum and carryBit
+00000000                             6  *-----------------------------------------------------------
+00000000  =00006000                  7  startAddress    EQU $6000
+00000000  =00008000                  8  endAddress      EQU $8000
+00000000                             9  
+00000000                            10  oneByte         DS.B 8
+00000008                            11  foundAt         DS.L 1  
+0000000C                            12  sum             DS.W 1
+0000000E                            13  carryBit        DS.W 1
+00000010                            14  
+00000010  =0000000D                 15  CR              EQU  $0D 
+00000010  =0000000A                 16  LF              EQU  $0A
+00000010= 45 6E 74 65 72 20 ...     17  MESSAGE         DC.b 'Enter a one-byte value: ',0
+00000029= 0A 0D 6F 6E 65 42 ...     18  ONEBYTERESULT   DC.B LF, CR,'oneByte: ', 0
+00000035= 0A 0D 66 6F 75 6E ...     19  FOUNDATRESULT   DC.B LF, CR,'foundAt: ', 0
+00000041= 0A 0D 73 75 6D 3A ...     20  SUMRESULT       DC.B LF, CR,'sum: ', 0
+00000049= 0A 0D 63 61 72 72 ...     21  CARRYBITRESULT  DC.B LF, CR,'carryBit: ', 0
+00000056                            22  
+00001000                            23      ORG    $1000
+00001000                            24      
+00001000                            25  START:
+00001000                            26    
+00001000  43F8 0010                 27      LEA         MESSAGE,A1                          ; load first message         
+00001004  103C 000E                 28      MOVE.B      #14,D0                              ; move #14 to D0
+00001008  4E4F                      29      TRAP        #15                                 ; TRAP #15               
+0000100A  103C 0005                 30      MOVE.B      #5,D0                               ; move #4 to D0
+0000100E  4E4F                      31      TRAP        #15                                 ; TRAP #15 
+00001010  21C1 0000                 32      MOVE.l      D1,oneByte                          ; move one byte inputed by user into D1
+00001014  11FC 0000 6000            33      MOVE.b      #oneByte,$6000                      ; move oneByte into address $6000
+0000101A  287C 00006000             34      MOVEA.L     #startAddress, A4                          ; assign address $6000 to A4
+00001020  21F8 6000 0008            35      MOVE.L      $6000,foundAt                       
+00001026  4278 000C                 36      CLR.W       sum                                 ; clear sum
+0000102A  4278 000E                 37      CLR.W       carryBit                            ; Clear carry bit
+0000102E                            38      
+0000102E                            39  LOOP:  
+0000102E                            40             
+0000102E  1214                      41      MOVE.B      (A4),D1                             ; move A4 into D1         
+00001030  B23C 0000                 42      CMP.B       #oneByte, D1        
+00001034  6700 000C                 43      BEQ         FOUND                               ; branch if equal to found
+00001038  524C                      44      ADDA.W      #$1,A4         
+0000103A  B9FC 00008001             45      CMPA.L      #$8001, A4                          ; compare A4 to 80001
+00001040  60EC                      46      BRA         LOOP                                ; branch to loop
+00001042                            47          
+00001042                            48  FOUND:  
+00001042                            49  
+00001042  21CC 0008                 50      MOVE.L      A4,foundAt                          ; Move Addr1 to the address found
+00001046  6000 0002                 51      BRA         CONTINUE                            ; branch to continue
+0000104A                            52      
+0000104A                            53  CONTINUE:
+0000104A  2878 0008                 54      MOVEA.L     foundAt, A4                         ; Move addr1 to A4 
+0000104E  4241                      55      CLR.W       D1                                  ; Clear D1
+00001050  4243                      56      CLR.W       D3                                  ; Clear D3
+00001052                            57   
+00001052                            58  SECONDLOOP:
+00001052                            59  
+00001052  141C                      60      MOVE.B      (A4)+, D2
+00001054  D578 000C                 61      ADD.W       D2, sum
+00001058  6500 000E                 62      BCS         CARRY
+0000105C  5241                      63      ADD.W       #1, D1
+0000105E  B27C 01FF                 64      CMP.W       #511, D1
+00001062  6E00 000C                 65      BGT         FINISH
+00001066  60EA                      66      BRA         SECONDLOOP                          ; branch to second loop
+00001068                            67      
+00001068                            68  CARRY:
+00001068                            69  
+00001068  31FC 0001 000E            70      MOVE.W      #1, carryBit                        ; move 1 to Carrybit
+0000106E  60E2                      71      BRA         SECONDLOOP                          ; branch to add loop
+00001070                            72      
+00001070                            73  FINISH
+00001070                            74  
+00001070  43F8 0029                 75      LEA         ONEBYTERESULT, A1                   ; move one byte result into A1
+00001074  103C 000E                 76      MOVE.B      #14, D0                             ; move task 14 into D0
+00001078  4E4F                      77      TRAP        #15                                 ; display contents of A1
+0000107A  2278 0000                 78      MOVEA.L     oneByte, A1                         ; move address of addr1 into A1
+0000107E  3209                      79      MOVE.W      A1, D1                              ; move address of A1 into D1
+00001080  103C 0003                 80      MOVE.B      #3, D0                              ; move task3 into D0
+00001084  4E4F                      81      TRAP        #15                                 ; Trap 15
+00001086                            82      
+00001086  43F8 0035                 83      LEA         FOUNDATRESULT, A1                   ; move found at result into A1
+0000108A  103C 000E                 84      MOVE.B      #14, D0                             ; move task 14 into D0
+0000108E  4E4F                      85      TRAP        #15                                 ; trap 15, display content
+00001090  2278 0008                 86      MOVEA.L     foundAt, A1                         ; move address of addr1 into A1
+00001094  3209                      87      MOVE.W      A1, D1                              ; move address of A1 into D1    
+00001096  103C 0003                 88      MOVE.B      #3, D0                              ; move task 3 into D0
+0000109A  4E4F                      89      TRAP        #15                                 ; display contents of D1
+0000109C                            90       
+0000109C  43F8 0041                 91      LEA         SUMRESULT, A1                       ; move sum result into A1
+000010A0  103C 000E                 92      MOVE.B      #14, D0                             ; move task 14 into D0 for Trap 15
+000010A4  4E4F                      93      TRAP        #15                                 ; display contents of A1
+000010A6  3238 000C                 94      MOVE.W      sum, D1                             ; move Addsum into D1
+000010AA  103C 0003                 95      MOVE.B      #3, D0                              ; move task 3 into D0    
+000010AE  4E4F                      96      TRAP        #15                                 ; trap 15, display content
+000010B0                            97    
+000010B0  43F8 0049                 98      LEA         CARRYBITRESULT, A1                  ; move carry bit result into A1
+000010B4  103C 000E                 99      MOVE.B      #14, D0                             ; move task 14 into D0
+000010B8  4E4F                     100      TRAP        #15                                 ; trap 15, display content
+000010BA  3238 000E                101      MOVE.W      CarryBit, D1                        ; move carry bit into D1
+000010BE  103C 0003                102      MOVE.B      #3, D0                              ; Move task 3 into D0
+000010C2  4E4F                     103      TRAP        #15                                 ; trap 15, display content  
+000010C4                           104     
+000010C4  FFFF FFFF                105      SIMHALT                                         ; halt simulator
+000010C8                           106      END         START                               ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+CARRY               1068
+CARRYBIT            E
+CARRYBITRESULT      49
+CONTINUE            104A
+CR                  D
+ENDADDRESS          8000
+FINISH              1070
+FOUND               1042
+FOUNDAT             8
+FOUNDATRESULT       35
+LF                  A
+LOOP                102E
+MESSAGE             10
+ONEBYTE             0
+ONEBYTERESULT       29
+SECONDLOOP          1052
+START               1000
+STARTADDRESS        6000
+SUM                 C
+SUMRESULT           41
